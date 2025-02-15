@@ -41,7 +41,7 @@ def extract_pure_regions(X, y, model, class_label, min_size_threshold=0.05):
         return None, np.ones_like(y, dtype=bool), None, 0  # No hyperplane available
     
     decision_values = model.decision_function(X)
-    pure_mask = (decision_values > 0) & (y == class_label)  # Select highly confident class cases
+    pure_mask = (decision_values > 0) # TODO: adjust this threshold.
 
     case_count = np.sum(pure_mask)
 
