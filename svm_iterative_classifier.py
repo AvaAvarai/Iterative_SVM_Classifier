@@ -68,8 +68,8 @@ def iterative_svm(X_normalized, y, class_mapping, label_encoder, df, pure_thresh
             lower_bound, upper_bound = -pure_threshold, pure_threshold  # Default if no misclassifications
         
         # Identify pure and overlap cases within remaining data
-        pure_above_mask = decision_values >= upper_bound
-        pure_below_mask = decision_values <= lower_bound
+        pure_above_mask = decision_values > upper_bound
+        pure_below_mask = decision_values < lower_bound
         overlap_mask = ~(pure_above_mask | pure_below_mask)
         
         # Get indices relative to original dataset
