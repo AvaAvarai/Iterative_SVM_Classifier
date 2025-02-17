@@ -9,8 +9,13 @@ def preprocess_dataset(file_path, class_column='class'):
     # Load dataset
     df = pd.read_csv(file_path)
     
+    # Check if class column exists
+    if class_column not in df.columns:
+        raise ValueError(f"Column '{class_column}' not found in the dataset.")
+    
     # Convert class column to lowercase for case-insensitivity
-    df[class_column] = df[class_column].str.lower()
+    if df[class_column].dtype == 'object':
+        df[class_column] = df[class_column].str.lower()
     
     # Drop whole rows with missing values
     df = df.dropna(how='all')
@@ -125,7 +130,7 @@ def preprocess_and_run_svm(file_path, class_column='class', pure_threshold=1.0, 
     
     return iterations, results
 
-iterations, results = preprocess_and_run_svm("fisher_iris_no_setosa.csv")
+iterations, results = preprocess_and_run_svm("mnist_2_7.csv")
 print(f"Total iterations: {iterations}")
 for res in results:
     print(res)
