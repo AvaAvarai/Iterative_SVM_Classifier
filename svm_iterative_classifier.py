@@ -3,11 +3,9 @@ import pandas as pd
 import numpy as np
 from sklearn.preprocessing import MinMaxScaler, LabelEncoder
 from sklearn.svm import SVC
+from pandas import DataFrame as df
 
-def preprocess_and_run_svm(file_path, class_column='class', pure_threshold=1.0, save_overlap=True):
-    # Set seed
-    np.random.seed(42)
-    
+def preprocess_dataset(file_path, class_column='class'):
     # Load dataset
     df = pd.read_csv(file_path)
     
@@ -36,6 +34,9 @@ def preprocess_and_run_svm(file_path, class_column='class', pure_threshold=1.0, 
     scaler = MinMaxScaler()
     X_normalized = scaler.fit_transform(X)
     
+    return X_normalized, y, class_mapping, label_encoder, df
+
+def iterative_svm(X_normalized, y, class_mapping, label_encoder, df, pure_threshold=1.0, save_overlap=True, class_column='class'):
     # Initialize iteration tracking
     iteration = 0
     results_list = []
@@ -111,6 +112,18 @@ def preprocess_and_run_svm(file_path, class_column='class', pure_threshold=1.0, 
         iteration += 1
     
     return iteration, results_list
+
+def preprocess_and_run_svm(file_path, class_column='class', pure_threshold=1.0, save_overlap=True):
+    # Set seed
+    np.random.seed(42)
+    
+    # Preprocess dataset
+    X_normalized, y, class_mapping, label_encoder, df = preprocess_dataset(file_path, class_column)
+    
+    # Run SVM
+    iterations, results = iterative_svm(X_normalized, y, class_mapping, label_encoder, df, pure_threshold, save_overlap, class_column)
+    
+    return iterations, results
 
 iterations, results = preprocess_and_run_svm("fisher_iris_no_setosa.csv")
 print(f"Total iterations: {iterations}")
