@@ -8,7 +8,10 @@ import json
 
 def preprocess_dataset(file_path, class_column='class'):
     # Load dataset
-    df = pd.read_csv(file_path)
+    try:
+        df = pd.read_csv(file_path)
+    except FileNotFoundError:
+        raise ValueError(f"File '{file_path}' not found.")
     
     # Check if class column exists
     if class_column not in df.columns:
@@ -124,14 +127,18 @@ def preprocess_and_run_svm(file_path, class_column='class', pure_threshold=1.0, 
     np.random.seed(42)
     
     # Preprocess dataset
-    X_normalized, y, class_mapping, label_encoder, df = preprocess_dataset(file_path, class_column)
+    try:
+        X_normalized, y, class_mapping, label_encoder, df = preprocess_dataset(file_path, class_column)
+    except ValueError as e:
+        print(f"Error processing file: {e}")
+        return 0, []
     
     # Run SVM
     iterations, results = iterative_svm(X_normalized, y, class_mapping, label_encoder, df, pure_threshold, save_overlap, class_column)
     
     return iterations, results
 
-iterations, results = preprocess_and_run_svm("fisher_iris_no_setosa.csv")
+iterations, results = preprocess_and_run_svm("wisconsin_breast_cancer_diagnostic.csv")
 print(f"Total iterations: {iterations}")
 for res in results:
     res_copy = res.copy()
