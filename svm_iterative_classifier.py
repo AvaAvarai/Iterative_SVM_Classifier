@@ -45,7 +45,7 @@ def preprocess_dataset(file_path, class_column='class'):
     
     return X_normalized, y, class_mapping, label_encoder, df
 
-def iterative_svm(X_normalized, y, class_mapping, label_encoder, df, pure_threshold=1.0, save_overlap=True, class_column='class'):
+def iterative_svm(C, X_normalized, y, class_mapping, label_encoder, df, pure_threshold=1.0, save_overlap=True, class_column='class'):
     # Initialize iteration tracking
     iteration = 0
     results_list = []
@@ -54,8 +54,7 @@ def iterative_svm(X_normalized, y, class_mapping, label_encoder, df, pure_thresh
     remaining_indices = np.arange(len(X_normalized))
     
     while True:
-        # Train an SVM classifier on remaining data
-        svm_model = SVC(kernel='linear', C=1000)
+        svm_model = SVC(kernel='linear', C=C)
         svm_model.fit(X_normalized[remaining_indices], y[remaining_indices])
         
         # Compute decision function values for remaining data
@@ -122,6 +121,19 @@ def iterative_svm(X_normalized, y, class_mapping, label_encoder, df, pure_thresh
     
     return iteration, results_list
 
+def find_best_C(X_normalized, y, C_values=[0.00001, 0.0001, 0.001, 0.01, 0.1, 1, 10, 100, 1000, 10000, 100000, 1000000], max_iterations=100):
+    best_C = None
+    best_accuracy = 0
+    for C in C_values:
+        svm_model = SVC(kernel='linear', C=C)
+        svm_model.fit(X_normalized, y)
+        predictions = svm_model.predict(X_normalized)
+        accuracy = np.mean(predictions == y)
+        if accuracy > best_accuracy:
+            best_C = C
+            best_accuracy = accuracy
+    return best_C
+
 def preprocess_and_run_svm(file_path, class_column='class', pure_threshold=1.0, save_overlap=False):
     # Set seed
     np.random.seed(42)
@@ -133,16 +145,41 @@ def preprocess_and_run_svm(file_path, class_column='class', pure_threshold=1.0, 
         print(f"Error processing file: {e}")
         return 0, []
     
-    # Run SVM
-    iterations, results = iterative_svm(X_normalized, y, class_mapping, label_encoder, df, pure_threshold, save_overlap, class_column)
+    # Find the best C value for SVM
+    best_C = find_best_C(X_normalized, y)
+    print(f"Best C value: {best_C}")
+    # Run SVM with the best C value
+    iterations, results = iterative_svm(best_C, X_normalized, y, class_mapping, label_encoder, df, pure_threshold, save_overlap, class_column)
     
     return iterations, results
 
-iterations, results = preprocess_and_run_svm("fisher_iris_no_setosa.csv")
+def convert_dict(d):
+    """ Recursively convert all dictionary keys and values to JSON-serializable types. """
+    new_dict = {}
+    for key, value in d.items():
+        # Convert NumPy integer keys to Python int
+        if isinstance(key, (np.int64, np.int32, np.integer)):
+            key = int(key)  
+        elif isinstance(key, (np.float64, np.float32, np.floating)):  
+            key = float(key)  # Convert NumPy float keys to Python float
+        else:
+            key = str(key)  # Convert anything else to string (JSON-safe)
+
+        # Convert values
+        if isinstance(value, (np.int64, np.int32, np.integer)):
+            value = int(value)
+        elif isinstance(value, (np.float64, np.float32, np.floating)):
+            value = float(value)
+        elif isinstance(value, dict):
+            value = convert_dict(value)  # Recurse if the value is a nested dictionary
+        new_dict[key] = value
+    return new_dict
+
+# Run the SVM pipeline
+iterations, results = preprocess_and_run_svm("mnist_2_7.csv")
 print(f"Total iterations: {iterations}")
+
+# Process results safely
 for res in results:
-    res_copy = res.copy()
-    for key, value in res_copy.items():
-        if isinstance(value, np.int64):
-            res_copy[key] = int(value)
-    print(json.dumps(res_copy, indent=4, default=str))
+    safe_res = convert_dict(res)  # Convert all keys and values
+    print(json.dumps(safe_res, indent=4))
