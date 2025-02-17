@@ -4,6 +4,7 @@ import numpy as np
 from sklearn.preprocessing import MinMaxScaler, LabelEncoder
 from sklearn.svm import SVC
 from pandas import DataFrame as df
+import json
 
 def preprocess_dataset(file_path, class_column='class'):
     # Load dataset
@@ -130,7 +131,11 @@ def preprocess_and_run_svm(file_path, class_column='class', pure_threshold=1.0, 
     
     return iterations, results
 
-iterations, results = preprocess_and_run_svm("mnist_2_7.csv")
+iterations, results = preprocess_and_run_svm("fisher_iris_no_setosa.csv")
 print(f"Total iterations: {iterations}")
 for res in results:
-    print(res)
+    res_copy = res.copy()
+    for key, value in res_copy.items():
+        if isinstance(value, np.int64):
+            res_copy[key] = int(value)
+    print(json.dumps(res_copy, indent=4, default=str))
