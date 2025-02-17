@@ -1,3 +1,4 @@
+# pip install pandas numpy scikit-learn
 import pandas as pd
 import numpy as np
 from sklearn.preprocessing import MinMaxScaler, LabelEncoder
@@ -10,8 +11,8 @@ def preprocess_and_run_svm(file_path, class_column='Class', pure_threshold=1.0, 
     # Load dataset
     df = pd.read_csv(file_path)
     
-    # Drop missing values
-    df = df.dropna()
+    # Drop whole rows with missing values
+    df = df.dropna(how='all')
     
     # Encode class labels if necessary
     label_encoder = None
