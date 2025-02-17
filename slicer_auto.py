@@ -4,12 +4,15 @@ import numpy as np
 from sklearn.preprocessing import MinMaxScaler, LabelEncoder
 from sklearn.svm import SVC
 
-def preprocess_and_run_svm(file_path, class_column='Class', pure_threshold=1.0, save_overlap=True):
+def preprocess_and_run_svm(file_path, class_column='class', pure_threshold=1.0, save_overlap=True):
     # Set seed
     np.random.seed(42)
     
     # Load dataset
     df = pd.read_csv(file_path)
+    
+    # Convert class column to lowercase for case-insensitivity
+    df[class_column] = df[class_column].str.lower()
     
     # Drop whole rows with missing values
     df = df.dropna(how='all')
@@ -109,7 +112,7 @@ def preprocess_and_run_svm(file_path, class_column='Class', pure_threshold=1.0, 
     
     return iteration, results_list
 
-iterations, results = preprocess_and_run_svm("data.csv")
+iterations, results = preprocess_and_run_svm("fisher_iris_no_setosa.csv")
 print(f"Total iterations: {iterations}")
 for res in results:
     print(res)
