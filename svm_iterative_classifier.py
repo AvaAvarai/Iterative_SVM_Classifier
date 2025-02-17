@@ -13,17 +13,17 @@ def preprocess_dataset(file_path, class_column='class'):
     except FileNotFoundError:
         raise ValueError(f"File '{file_path}' not found.")
     
-    # Check if class column exists
-    if class_column not in df.columns:
-        raise ValueError(f"Column '{class_column}' not found in the dataset.")
+    # Normalize all column names to lowercase
+    df.columns = df.columns.str.lower()  # Convert all column names to lowercase
+    class_column = class_column.lower()  # Ensure the provided column name is also lowercase
     
-    # Convert class column to lowercase for case-insensitivity
-    if df[class_column].dtype == 'object':
-        df[class_column] = df[class_column].str.lower()
+    # Check if class column exists after normalization
+    if class_column not in df.columns:
+        raise ValueError(f"Column '{class_column}' not found in the dataset. Available columns: {df.columns.tolist()}")
     
     # Drop whole rows with missing values
     df = df.dropna(how='all')
-    
+
     # Encode class labels if necessary
     label_encoder = None
     original_classes = None
@@ -55,7 +55,7 @@ def iterative_svm(X_normalized, y, class_mapping, label_encoder, df, pure_thresh
     
     while True:
         # Train an SVM classifier on remaining data
-        svm_model = SVC(kernel='linear', C=1.0)
+        svm_model = SVC(kernel='linear', C=1000)
         svm_model.fit(X_normalized[remaining_indices], y[remaining_indices])
         
         # Compute decision function values for remaining data
@@ -122,7 +122,7 @@ def iterative_svm(X_normalized, y, class_mapping, label_encoder, df, pure_thresh
     
     return iteration, results_list
 
-def preprocess_and_run_svm(file_path, class_column='class', pure_threshold=1.0, save_overlap=True):
+def preprocess_and_run_svm(file_path, class_column='class', pure_threshold=1.0, save_overlap=False):
     # Set seed
     np.random.seed(42)
     
@@ -138,7 +138,7 @@ def preprocess_and_run_svm(file_path, class_column='class', pure_threshold=1.0, 
     
     return iterations, results
 
-iterations, results = preprocess_and_run_svm("wisconsin_breast_cancer_diagnostic.csv")
+iterations, results = preprocess_and_run_svm("fisher_iris_no_setosa.csv")
 print(f"Total iterations: {iterations}")
 for res in results:
     res_copy = res.copy()
