@@ -37,6 +37,11 @@ def load_dataset():
     scaler = MinMaxScaler()
     X = scaler.fit_transform(X)
     
+    # Check if there are more than 2 classes
+    unique_classes = np.unique(y)
+    if len(unique_classes) > 2:
+        raise ValueError("Dataset must have exactly 2 classes.")
+    
     return X, y
 
 # Iterative SVM refinement algorithm
