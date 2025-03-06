@@ -124,6 +124,22 @@ def get_tree_dimensions(root, depth=0):
     
     return max(left_depth, right_depth), left_width + right_width
 
+# Function to count decision nodes
+def count_decision_nodes(root):
+    if root is None:
+        return 0
+    
+    # Count this node if it has a decision function (not the root node)
+    count = 1 if root.decision_function is not None else 0
+    
+    # Recursively count nodes in left and right subtrees
+    if root.left:
+        count += count_decision_nodes(root.left)
+    if root.right:
+        count += count_decision_nodes(root.right)
+    
+    return count
+
 # Function to visualize the decision tree
 def plot_tree(root, depth=0, x=0.5, y=0.9, dx=0.25, dy=0.1):
     if root is None:
@@ -158,13 +174,20 @@ if __name__ == "__main__":
     X, y = load_dataset()
     tree_root = iterative_svm_refinement(X, y)
     
-    # Calculate figure size based on tree dimensions
+    # Calculate tree metrics
     max_depth, total_width = get_tree_dimensions(tree_root)
+    num_decision_nodes = count_decision_nodes(tree_root)
+    
+    print(f"\nTree Metrics:")
+    print(f"Max Tree Depth: {max_depth}")
+    print(f"Number of Decision Nodes: {num_decision_nodes}")
+    
+    # Calculate figure size based on tree dimensions
     fig_width = max(12, total_width * 3)  # Minimum width of 12, scale by tree width
     fig_height = max(8, max_depth * 1.5)  # Minimum height of 8, scale by tree depth
     
     plt.figure(figsize=(fig_width, fig_height))
-    plt.title("Structured Iterative SVM Refinement Tree", pad=20)
+    plt.title(f"Structured Iterative SVM Refinement Tree\nDepth: {max_depth}, Nodes: {num_decision_nodes}", pad=20)
     plot_tree(tree_root, dx=0.2)  # Adjust dx for better spacing
     plt.axis('off')
     plt.tight_layout()

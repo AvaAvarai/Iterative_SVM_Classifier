@@ -6,6 +6,12 @@ Achieved 100% accuracy on WBC 9 and 30 attribute datasets in our upcoming paper 
 
 ![SVM Iterative Algorithm](svmiterativealgo.png)
 
+## Results
+
+| Dataset Name | Tree Depth | Number of Decision Nodes |
+|--------------|------------|--------------------------|
+| Iris (No Setosa) | 4 | 3 |
+
 ## License
 
 This project is freely available for both personal and commercial use under the [MIT License](LICENSE).
