@@ -1,3 +1,6 @@
+# Install required packages with:
+# pip install numpy pandas matplotlib scikit-learn
+
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -13,6 +16,7 @@ class TreeNode:
         self.removed_points = removed_points
         self.left = None  # Left branch (one class removed)
         self.right = None  # Right branch (other class removed)
+        self.decision_function = None  # Store SVM decision function
 
 # Function to load and preprocess dataset
 def load_dataset():
@@ -62,6 +66,9 @@ def iterative_svm_refinement(X, y, max_iterations=10, kernel='linear'):
         w = svm.coef_.flatten()
         b = svm.intercept_[0]
         
+        # Store the decision function in the current node
+        current_node.decision_function = f"w={np.round(w, 3)}, b={round(b, 3)}"
+        
         # Project points onto decision axis
         projections = np.dot(remaining_X, w) + b
         
@@ -107,24 +114,41 @@ def iterative_svm_refinement(X, y, max_iterations=10, kernel='linear'):
     
     return root
 
+# Function to get tree dimensions
+def get_tree_dimensions(root, depth=0):
+    if root is None:
+        return depth, 1
+    
+    left_depth, left_width = get_tree_dimensions(root.left, depth + 1)
+    right_depth, right_width = get_tree_dimensions(root.right, depth + 1)
+    
+    return max(left_depth, right_depth), left_width + right_width
+
 # Function to visualize the decision tree
 def plot_tree(root, depth=0, x=0.5, y=0.9, dx=0.25, dy=0.1):
     if root is None:
         return
     
     # Draw the current node
-    plt.text(x, y, f"Iteration {root.iteration}\nRemoved: {root.removed_class}\nCount: {root.removed_points}",
-             ha='center', va='center', bbox=dict(facecolor='lightblue', edgecolor='black'))
+    node_text = f"Iteration {root.iteration}"
+    if root.removed_class is not None:
+        node_text += f"\nRemoved: {root.removed_class}\nCount: {root.removed_points}"
+    if root.decision_function:
+        node_text += f"\n{root.decision_function}"
+        
+    plt.text(x, y, node_text,
+             ha='center', va='center', bbox=dict(facecolor='lightblue', edgecolor='black'),
+             wrap=True)
     
     # Calculate child positions
     if root.left:
-        child_x = x - dx * (depth + 1)  # Adjust x position based on depth to avoid overlap
+        child_x = x - dx * (2 ** depth)  # Exponential spacing to avoid overlap
         child_y = y - dy
         plt.plot([x, child_x], [y, child_y], 'k-', lw=1)
         plot_tree(root.left, depth + 1, child_x, child_y, dx, dy)
     
     if root.right:
-        child_x = x + dx * (depth + 1)  # Adjust x position based on depth to avoid overlap
+        child_x = x + dx * (2 ** depth)  # Exponential spacing to avoid overlap
         child_y = y - dy
         plt.plot([x, child_x], [y, child_y], 'k-', lw=1)
         plot_tree(root.right, depth + 1, child_x, child_y, dx, dy)
@@ -134,9 +158,14 @@ if __name__ == "__main__":
     X, y = load_dataset()
     tree_root = iterative_svm_refinement(X, y)
     
-    plt.figure(figsize=(12, 8))
+    # Calculate figure size based on tree dimensions
+    max_depth, total_width = get_tree_dimensions(tree_root)
+    fig_width = max(12, total_width * 3)  # Minimum width of 12, scale by tree width
+    fig_height = max(8, max_depth * 1.5)  # Minimum height of 8, scale by tree depth
+    
+    plt.figure(figsize=(fig_width, fig_height))
     plt.title("Structured Iterative SVM Refinement Tree", pad=20)
-    plot_tree(tree_root)
+    plot_tree(tree_root, dx=0.2)  # Adjust dx for better spacing
     plt.axis('off')
     plt.tight_layout()
     plt.show()
