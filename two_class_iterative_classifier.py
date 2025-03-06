@@ -113,16 +113,16 @@ def plot_tree(root, depth=0, x=0.5, y=0.9, dx=0.25, dy=0.1):
     
     # Calculate child positions
     if root.left:
-        child_x = x - dx
+        child_x = x - dx * (depth + 1)  # Adjust x position based on depth to avoid overlap
         child_y = y - dy
         plt.plot([x, child_x], [y, child_y], 'k-', lw=1)
-        plot_tree(root.left, depth + 1, child_x, child_y, dx * 0.7, dy)
+        plot_tree(root.left, depth + 1, child_x, child_y, dx, dy)
     
     if root.right:
-        child_x = x + dx
+        child_x = x + dx * (depth + 1)  # Adjust x position based on depth to avoid overlap
         child_y = y - dy
         plt.plot([x, child_x], [y, child_y], 'k-', lw=1)
-        plot_tree(root.right, depth + 1, child_x, child_y, dx * 0.7, dy)
+        plot_tree(root.right, depth + 1, child_x, child_y, dx, dy)
 
 # Main execution
 if __name__ == "__main__":
