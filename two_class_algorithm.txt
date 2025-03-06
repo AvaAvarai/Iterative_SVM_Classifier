@@ -1,0 +1,28 @@
+1. Initialize:
+    a. remaining_X ← X
+    b. remaining_y ← y
+    c. root ← create_tree_node(iteration=0, removed_class=None, removed_points=0)
+    d. current_node ← root
+    e. iteration_count ← 0
+
+2. While iteration_count < max_iterations AND multiple classes remain in remaining_y:
+    a. Train SVM on (remaining_X, remaining_y)
+        i. Compute decision function parameters:
+            - w ← SVM hyperplane normal vector
+            - b ← SVM bias term
+    b. Project all points onto the decision axis:
+        i. projection ← (remaining_X ⋅ w) + b
+    c. Sort points along the decision axis by projection value
+    d. Identify pure regions:
+        i. Find the leftmost contiguous region containing only one class
+        ii. Find the rightmost contiguous region containing only one class
+    e. Remove pure regions from remaining_X and remaining_y
+    f. Create a new tree node:
+        i. Set iteration number
+        ii. Record removed class and count
+        iii. Attach node to current_node
+    g. Set current_node ← next node in iteration
+    h. Stop if only one class remains
+    i. Increment iteration_count
+
+3. Return root of the decision tree
